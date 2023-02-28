@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        service: cube-refresh-worker
+    name: cube-refresh-worker
+    namespace: cubejs
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            service: cube-refresh-worker
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                service: cube-refresh-worker
+        spec:
+            containers:
+                - env: # Refer to https://cube.dev/docs/reference/environment-variables for more options
+                      - name: CUBEJS_API_SECRET
+                        value: "a63dc895112603e06cee527ef4dd2370"
+                      - name: CUBEJS_CUBESTORE_HOST
+                        value: "cubestore-router" # USING THIS CUBESTORE HOST BECAUSE THE CUBESTORE ROUTER SERVICE IS NAMED "CUBESTORE-ROUTER"
+                      - name: CUBEJS_DB_HOST
+                        value: "db-service.dbspace.svc.cluster.local"
+                      - name: CUBEJS_DB_NAME
+                        value: "postgresdb"
+                      - name: CUBEJS_DB_USER
+                        value: "postgres"
+                      - name: CUBEJS_DB_PASS
+                        value: "timescaledb@pg"
+                      - name: CUBEJS_DB_TYPE
+                        value: "postgres"
+                      - name: CUBEJS_DB_PORT
+                        value: "5432"
+                      - name: CUBEJS_DEV_MODE
+                        value: "false" # NEVER RUN DEV MODE IN K8S
+                      - name: CUBEJS_EXTERNAL_DEFAULT
+                        value: "true"
+                      - name: CUBEJS_REDIS_URL
+                        value: redis://redis:6379 # USING THIS REDIS URL BECAUSE THE REDIS SERVICE IS NAMED "REDIS"
+                      # SPECIFY THIS INSTANCE TO ACT AS A REFRESH WORKER
+                      - name: CUBEJS_REFRESH_WORKER
+                        value: "true"
+                      - name: CUBEJS_PG_SQL_PORT
+                        value: "5432"
+                      - name: CUBEJS_SQL_USER
+                        value: postgres
+                      - name: CUBEJS_SQL_PASSWORD
+                        value: timescaledb@pg
+                  image: cubejs/cube:v0.31.27
+                  name: cube-refresh-worker
+                  resources: {}
+                  volumeMounts:
+                      - mountPath: /cube/conf/schema
+                        name: cube-api-schema
+            restartPolicy: Always
+            volumes:
+                - name: cube-api-schema
+                  # configMap:
+                  #     name: cube-api-schema
+                  hostPath:
+                      # directory location on host
+                      path: /cube/conf/schema
+                      # this field is optional
+                      type: Directory
+status: {}

@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+  namespace: dbspace
+  labels:
+    app: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      securityContext:
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: database
+        image: timescale/timescaledb-ha:pg14.6-ts2.9-latest
+        ports:
+        - containerPort: 5432
+        env:
+        - name: TZ
+          value: Asia/Kolkata
+        - name: POSTGRES_DB
+          value: postgresdb
+        - name: POSTGRES_PASSWORD
+          value: timescaledb@pg
+        - name: POSTGRES_USER
+          value: postgres
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: database-volume
+        - mountPath: /docker-entrypoint-initdb.d
+          name: database-config
+      volumes:
+      - name: database-volume
+        persistentVolumeClaim:
+          claimName: db-pvc
+      - name: database-config
+        configMap:
+          name: postgres-config

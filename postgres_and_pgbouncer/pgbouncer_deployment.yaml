@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pgbouncer
+  name: pgbouncer
+  namespace: dbspace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgbouncer
+  template:
+    metadata:
+      labels:
+        app: pgbouncer
+    spec:
+      containers:
+      - env:
+         - name: DB_HOST
+           value: db-service
+         - name: DB_PASSWORD
+           value: timescaledb@pg
+         - name: DB_USER
+           value: postgres
+         - name: DB_NAME
+           value: postgresdb
+         - name: POOL_MODE
+           value: transaction
+         - name: SERVER_RESET_QUERY
+           value: DISCARD ALL
+         - name: pgbouncer_auth_type
+           value: "scram-sha-256"
+        image: edoburu/pgbouncer:latest
+        volumeMounts:
+        - mountPath: /etc/pgbouncer/userlist.txt
+          name: pgbouncer-userlist
+          subPath: userlist.txt
+        - mountPath: /etc/pgbouncer/pgbouncer.ini
+          name: pgbouncer-configuration
+          subPath: pgbouncer.ini
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - killall -INT pgbouncer && sleep 120
+        name: pgbouncer
+        ports:
+        - containerPort: 5432
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - all
+      volumes:
+      - name: pgbouncer-configuration
+        configMap:
+          name: pgbouncer-config
+      - name: pgbouncer-userlist
+        configMap:
+          name: pgbouncer-config  
+

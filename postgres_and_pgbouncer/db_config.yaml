@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: postgres-config
+    namespace: dbspace
+data:
+    init.sql: |
+        CREATE EXTENSION IF NOT EXISTS postgis cascade;
+        CREATE EXTENSION IF NOT EXISTS timescaledb cascade;
+        CREATE EXTENSION IF NOT EXISTS timescaledb_toolkit cascade;
+        CREATE TABLE solidwastemanagement (wardID INT, speed DOUBLE PRECISION, vehicleType TEXT, observationDateTime TIMESTAMPTZ NOT NULL, deviceBatteryStatus TEXT, vehicleRunningStatus TEXT, bearing DOUBLE PRECISION, ignitionStatus TEXT, latitude DOUBLE PRECISION, longitude DOUBLE PRECISION);
+        SELECT create_hypertable('solidwastemanagement','observationdatetime');
+        CREATE INDEX ix_symbol_time ON solidwastemanagement (speed, vehicleType, observationDateTime DESC, deviceBatteryStatus, vehicleRunningStatus, bearing,ignitionStatus);
+        CREATE TABLE air_quality (airQualityLevel TEXT, observationDateTime TIMESTAMPTZ NOT NULL, deviceStatus TEXT, aqiMajorPollutant TEXT, airQualityIndex DOUBLE PRECISION, uv_avgOverTime DOUBLE PRECISION, o3_avgOverTime DOUBLE PRECISION, pm2p5_avgOverTime DOUBLE PRECISION, co2_avgOverTime DOUBLE PRECISION, pm10_avgOverTime DOUBLE PRECISION, co_avgOverTime DOUBLE PRECISION, no2_avgOverTime DOUBLE PRECISION, airTemperature_avgOverTime DOUBLE PRECISION, illuminance_avgOverTime DOUBLE PRECISION, ambientNoise_avgOverTime DOUBLE PRECISION, so2_avgOverTime DOUBLE PRECISION, relativeHumidity_avgOverTime DOUBLE PRECISION, atmosphericPressure_avgOverTime DOUBLE PRECISION);
+        SELECT create_hypertable('air_quality','observationdatetime');
+        CREATE INDEX ix_aqm_time ON air_quality ( airQualityLevel, observationDateTime DESC, deviceStatus, aqiMajorPollutant, airQualityIndex, uv_avgOverTime, o3_avgOverTime, pm2p5_avgOverTime, co2_avgOverTime, pm10_avgOverTime, co_avgOverTime, no2_avgOverTime, airTemperature_avgOverTime, illuminance_avgOverTime, ambientNoise_avgOverTime, so2_avgOverTime, relativeHumidity_avgOverTime, atmosphericPressure_avgOverTime);
+              

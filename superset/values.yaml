@@ -200,6 +200,8 @@ initImage:
 service:
     type: NodePort
     port: 8088
+    nodePort:
+        http: 30001
     annotations:
         {}
         # cloud.google.com/load-balancer-type: "Internal"
@@ -266,7 +268,6 @@ supersetNode:
         db_user: superset
         db_pass: superset
         db_name: superset
-        # TODO: Cross Filters
     env: {}
     # -- If true, forces deployment to reload on each upgrade
     forceReload: false
@@ -721,7 +722,7 @@ postgresql:
             ##
             size: 1Gi
             ## Persistant class
-            # storageClass: ebs-storage-class
+            # storageClass: ebs-csi-storage-class
             ##
             ## Access modes:
             accessModes:

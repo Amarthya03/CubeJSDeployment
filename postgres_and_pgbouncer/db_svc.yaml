@@ -10,4 +10,4 @@ spec:
       protocol: TCP
   selector:
     app: database
-  clusterIP: 10.43.82.136
+

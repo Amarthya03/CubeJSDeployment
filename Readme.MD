@@ -56,6 +56,26 @@ helm repo add superset https://apache.github.io/superset
 helm upgrade -f ./superset/values.yaml superset superset/superset -n superset
 ```
 
+## Accessing CubeJS Playground and Superset
+
+1. If your kubernetes cluster is on minikube, to use user-defined Cube schemas, you should mount the <code>cube-api-schema directory</code>
+
+```zsh
+minikube mount <path-to-your-directory>/cube-api-schema:/cube/conf/schema
+```
+
+2. Expose Cube API Port
+
+```zsh
+kubectl port-forward --namespace=cubejs pods/<name-of-the-cube-api-pod> 4000
+```
+
+3. Expose Superset port, and login with the superset admin credentials
+
+```zsh
+kubectl port-forward --namespace=superset pods/<name-of-the-superset-pod> 8088
+```
+
 ## Contributors
 
 1. [Mayur Taware](https://github.com/mayurdtom)
